@@ -1,0 +1,48 @@
+---
+title: "R Code of lolpredict"
+author: "Jaydann Grossman"
+date: "2024-10-23"
+output: html_document
+---
+
+### Load the required libraries
+```{r message=FALSE,warning=FALSE}
+library(tidyverse)
+library(dplyr)
+```
+
+### Read the csv file
+```{r}
+data = read.csv("../data/2024_game_data.csv")
+glimpse(data)
+```
+
+## Data Cleaning
+
+There is a lot of data here that we do not need. A lot of this data is game and player specific stats that we really do not care about. Therefore we will clean the data so that we only have the actually important information that we want to train the model on. These will be things like gold and xp differences, kills, dragons, etc. We will start by only including completed games and only using team data. We will also start by only looking at data from the first 15 minutes of the game
+
+```{r}
+first_15 <- data %>% filter(datacompleteness == "complete",
+                        position == "team")
+```
+
+Next we need to filter the rows that we actually want (the ones mentioned above plus some more)
+
+```{r}
+first_15 <- first_15 %>% select(side, firstblood, firstdragon, void_grubs, opp_void_grubs, firsttower, turretplates, opp_turretplates, golddiffat10, xpdiffat10, killsat10, opp_killsat10, golddiffat15, xpdiffat15, killsat15, opp_killsat15, result)
+```
+
+Next there are still some things that need to be changed to a different data type to be easier to deal with (side)
+
+```{r}
+first_15 <- first_15 %>% mutate(side = as.factor(side))
+first_15$side<-ifelse(first_15$side=="Blue",1,0)
+glimpse(first_15)
+```
+
+Now we can export this data into a new csv file.
+
+```{r}
+write.csv(first_15, "../data/2024_first_15.csv")
+```
+
